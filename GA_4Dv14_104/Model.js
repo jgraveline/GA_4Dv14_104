@@ -1,0 +1,1 @@
+model.mergeOutsideCatalog("GA_4Dv14_Catalog", {	hostname: "127.0.0.1:15000",	user: "",	password: "",	// jsFile: "my4DCatalog.js",	timeout:15 } );

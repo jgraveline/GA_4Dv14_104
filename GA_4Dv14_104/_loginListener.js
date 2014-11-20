@@ -1,0 +1,1 @@
+﻿directory.setLoginListener('AppLogin', 'Admin'); // run with Admin permissions

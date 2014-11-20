@@ -1,0 +1,1 @@
+﻿directory.setLoginListener('loginHandler', 'Admin'); // run with Admin permissions
