@@ -30,6 +30,7 @@ function constructor (id) {
 	var dialogDupliDomId = getHtmlId('dialogDupli');
 	var dupliDecalVar = getHtmlId('textFieldDupliDecal');
 	
+	var DTprintContainerDomId = getHtmlId('DTprintContainer');
 	// @region beginComponentDeclaration// @startlock
 	var $comp = this;
 	this.name = 'detailTemps';
@@ -38,6 +39,8 @@ function constructor (id) {
 	this.load = function (data) {// @lock
 
 	// @region namespaceDeclaration// @startlock
+	var DTprintContainer = {};	// @container
+	var buttonPrint = {};	// @button
 	var comboWeeksArrEvent = {};	// @dataSource
 	var buttonFind = {};	// @button
 	var buttonFindOk = {};	// @button
@@ -325,11 +328,10 @@ function constructor (id) {
 
 //		$$(buttonDupliDomId).disable();
 //		$$(buttonFindDomId).disable();
-		$$(buttonPrintDomID).disable();
+//		$$(buttonPrintDomID).disable();
 		
 		$$(dialogDupliDomId).hide();
 		$$(dialogFindDomId).hide();
-
 	};
 
 	function DTlistDupliSelected () {
@@ -478,11 +480,127 @@ function constructor (id) {
 		
 		if (dtFilter.length > 0) {
 			$comp.sources.detail_Temps.query(dtFilter + " order by DET_Date, DPI_ID", {onSuccess: function(event){}});
+
 			$comp.sources.comboWeeksArr.select(0);
 			comboboxWeek$.find('input').val('Aucune');	
 			refreshTotalHeures();
 		}	
 	
+	};
+	
+	function DTlistPrint_ () {
+		debugger;
+		var start = 0;
+	 	$comp.sources.detail_Temps.getElements(start, {
+	        onSuccess: function(event) {
+				alert('DTlistPrint getElements onSuccess');
+	   	  		var currentDayOfWeek = -1;
+	    		var previousDayOfWeek = -1;
+				var dayArr = [Dimanche, Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi];
+				var cumulDayTime = 0;
+				var cumulTotalTime = 0;
+				var html = '';
+				alert('DTlistPrint getElements onSuccess2');
+				
+		        debugger;
+		        html += '<div class="t1">';
+		        html += '<div class="t2">';
+				//ligne d'entete avec titre des colonnes
+	            html += '<div class="r1">'; // for each array element
+				html += '<span class="s1"><b>Jour</b></span>';  //nouvelle colonne
+				html += '<span class="s1"><b>Client</b></span>';  //nouvelle colonne
+				html += '<span class="s1"><b>Dossier</b></span>';  //nouvelle colonne
+				html += '<span class="s1"><b>N°</b></span>';  //nouvelle colonne
+				html += '<span class="s1"><b>Temps</b></span>';  //nouvelle colonne
+				html += '<span class="s1"><b>Poste</b></span>';  //nouvelle colonne
+				html += '<span class="s1"><b>Observations</b></span>';  //nouvelle colonne
+                html += '</div>';
+				
+	            var elems = event.result; //resulting array
+				alert('DTlistPrint getElements onSuccess');
+		  		var currentDayOfWeek = dt.DET_Date.getDay();
+	            elems.forEach(function(dt) {
+	            	
+		            currentDayOfWeek = dt.DET_Date.getDay();
+					
+					cumulDayTime += dt.DET_Temps;
+					 
+	                html += '<div class="r1">'; // for each array element
+	                html += '<span class="s1">' + dayArr[currentDayOfWeek] + '&nbsp'+ formatDateOnly(dt.DET_Date) + '</span>'; // Jour
+	                html += '<span class="s1">' + dt.Lien_DPI_DT.Lien_DOSPOS_DPI.Lien_DOS_DOSPOS.Lien_SOC_DOSPOS.SOC_RS_Courte + '</span>'; //Client
+	                html += '<span class="s1">' + dt.Lien_DPI_DT.Lien_DOSPOS_DPI.Lien_DOS_DOSPOS.DOS_Libelle + '</span>'; //Dossier
+	                html += '<span class="s1">' + dt.Lien_DPI_DT.Lien_DOSPOS_DPI.Lien_DOS_DOSPOS.DOS_Numero + '</span>'; //N°
+	                html += '<span class="s1">' + dt.DET_heures + '</span>'; //Temps
+	                html += '<span class="s1">' + dt.Lien_DPI_DT.Lien_DOSPOS_DPI.Lien_POS_DOSPOS.POS_Code + '</span>'; //Poste
+	                html += '<span class="s1">' + dt.DET_Commentaire + '</span>'; //Observation
+	                html += '</div>';
+
+					if (currentDayOfWeek = -1) { //premier tour de boucle
+	  					var currentDayOfWeek = dt.DET_Date.getDay();
+			    		var previousDayOfWeek = currentDayOfWeek;	
+					} else if (currentDayOfWeek !== previousDayOfWeek) { //changement de jour
+		                html += '<div class="r1">'; // ligne cumul jour
+			            html += '<span class="s1">Cumul journalier</span>'; //Temps
+			            html += '<span class="s1">' + timeFloat2Str(cumulDayTime) + '</span>'; //Temps
+		                html += '</div>';
+
+		                html += '<div class="r1">'; // ligne cumul jour
+						html += '<span class="s1"><hr noshade align="center"</span>'; // ligne séparation jour
+		                html += '</div>';
+
+		            	previousDayOfWeek = currentDayOfWeek;
+			  			currentDayOfWeek = dt.DET_Date.getDay();
+			  			cumulTotalTime += cumulDayTime;
+						cumulDayTime = 0;
+						
+		            } else {
+		            	
+		        	}
+		        	
+	            });
+
+                html += '<div class="r1">'; // ligne cumul jour
+	            html += '<span class="s1">Cumul journalier</span>'; //Temps
+	            html += '<span class="s1">' + timeFloat2Str(cumulDayTime) + '</span>'; //Temps
+                html += '</div>';
+
+                html += '<div class="r1">'; // ligne cumul jour
+				html += '<span class="s1"><hr noshade align="center"</span>'; // ligne séparation jour
+                html += '</div>';
+
+	  			cumulTotalTime += cumulDayTime;
+
+                html += '<div class="r1">'; // ligne cumul total
+	            html += '<span class="s1">Total heures : ' + timeFloat2Str(cumulTotalTime) + '</span>'; //Temps
+                html += '</div>';
+
+	            html +='</div>';
+	            html +='</div>';
+				$$(containerPrintTestDomId).show();
+	            $("#containerPrintTestDomId").html(html);
+	        },
+			onError: function(event){
+				alert('DTlistPrint getElements onError: ' + event);
+				WAF.ErrorManager.displayError(event);
+				return 0;
+			}
+	    });		
+	};
+
+	function DTlistPrint () {
+//		debugger;
+		
+		//memo current detail_Temps collection
+//		var dtSet = $comp.sources.detail_Temps.getEntityCollection();
+//		$comp.sources.intervenant.setSessionInfo('dtCollection', dtSet);
+		
+//		var printWindow = window.open( '/GA_print.waPage/index.html', '_self' );
+		
+		var printHtml = '';		
+		printHtml = $comp.sources.detail_Temps.print ();
+		$$(DTlistContainer).hide();
+		$$(DTprintContainerDomId).show();
+        $('#' + DTprintContainerDomId).html(printHtml);
 	};
 	
 	function DTdetailLoad () {
@@ -624,6 +742,17 @@ function constructor (id) {
 	toogleListDetail('list');
 	
 	// eventHandlers// @lock
+
+	DTprintContainer.click = function DTprintContainer_click (event)// @startlock
+	{// @endlock
+		$$(DTprintContainerDomId).hide();
+		$$(DTlistContainer).show();
+	};// @lock
+
+	buttonPrint.click = function buttonPrint_click (event)// @startlock
+	{// @endlock
+		DTlistPrint ();
+	};// @lock
 
 	comboWeeksArrEvent.onIDAttributeChange = function comboWeeksArrEvent_onIDAttributeChange (event)// @startlock
 	{// @endlock
@@ -795,10 +924,12 @@ function constructor (id) {
 
 	detail_TempsEvent.onCollectionChange = function detail_TempsEvent_onCollectionChange (event)// @startlock
 	{// @endlock
-		 	refreshTotalHeures();
+	 	refreshTotalHeures();
 	};// @lock
 
 	// @region eventManager// @startlock
+	WAF.addListener(this.id + "_DTprintContainer", "click", DTprintContainer.click, "WAF");
+	WAF.addListener(this.id + "_buttonPrint", "click", buttonPrint.click, "WAF");
 	WAF.addListener(this.id + "_comboWeeksArr", "onIDAttributeChange", comboWeeksArrEvent.onIDAttributeChange, "WAF", "ID");
 	WAF.addListener(this.id + "_buttonFind", "click", buttonFind.click, "WAF");
 	WAF.addListener(this.id + "_buttonFindOk", "click", buttonFindOk.click, "WAF");

@@ -1,1 +1,0 @@
-﻿debugger;var dt = ds.Detail_Temps.createEntity();dt.DET_Date = new Date();dt.DPI_ID = 1;		dt.save();dt;
