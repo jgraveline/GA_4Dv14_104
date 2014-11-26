@@ -16,8 +16,12 @@ function constructor (id) {
 	var comboboxWeek$ = getHtmlObj('comboboxWeek');
 
 	var DTdetailContainer = getHtmlId('DTdetailContainer');
-	var textFieldDateInputRef = getHtmlId('textFieldDateInput');
-	var textFieldHeuresRef = getHtmlId('textFieldHeures');
+	var DET_DateInputRef = getHtmlId('DET_DateInput'); //ReadWrite
+	var DET_DateTextRef = getHtmlId('DET_DateText'); //ReadOnly
+	var DET_HeuresInputRef = getHtmlId('DET_HeuresInput'); //ReadWrite
+	var DET_HeuresTextRef = getHtmlId('DET_HeuresText'); //ReadOnly
+	var comboboxDPIref = getHtmlId('comboboxDPI'); //ReadWrite
+	var dtDossierLibTextRef = getHtmlId('dtDossierLibText'); //ReadOnly
 	var comboboxDPI$ = getHtmlObj('comboboxDPI');
 	
 	var dialogFindDomId = getHtmlId('dialogFind');
@@ -47,7 +51,7 @@ function constructor (id) {
 	var buttonFindCancel = {};	// @button
 	var buttonDupliCancel = {};	// @button
 	var buttonDupliOK = {};	// @button
-	var textFieldInputTemps = {};	// @textField
+	var DET_HeuresInput = {};	// @textField
 	var buttonAdd = {};	// @button
 	var buttonDupli = {};	// @button
 	var comboboxDPI = {};	// @combobox
@@ -67,20 +71,20 @@ function constructor (id) {
 	this.setDate(this.getDate()+days);
 	};
 
-	function addDays (date, days) {
+	function addDays(date, days) {
 	    var result = new Date(date);
 	    result.setDate(date.getDate() + days);
 	    return result;
 	};
 
-	function jsDateStr2Date (jsDateStr) {
+	function jsDateStr2Date(jsDateStr) {
 		var	yearStr = jsDateStr.substr(0, 4);
 		var monthStr = String(Number(jsDateStr.substr(5, 2)) - 1); //js month 0-11
 		var dayStr = jsDateStr.substr(8, 2);
 		return new Date(yearStr, monthStr, dayStr);	
 	};
 	
-	function formatDateOnly (dateObject) {
+	function formatDateOnly(dateObject) {
 		var currDate = dateObject.getDate();
 		var currMonth = dateObject.getMonth();
 		currMonth++; // convert month 0-11 in 1-12 
@@ -88,12 +92,12 @@ function constructor (id) {
 		return currYear + '-' + (currMonth < 10 ? '0' : '') + currMonth + '-' + (currDate < 10 ? '0' : '') + currDate;
 	};
 
-	function firstDateOfWeek (dateObject) {
+	function firstDateOfWeek(dateObject) {
 		var currDay = dateObject.getDay() || 7; // Get current day number, converting Sun. to 7
 		return new Date(dateObject.getTime() - 60*60*24* currDay*1000); //will return the date of the firstday (ie sunday) of the week
 	};
 
-	function comboWeeksFill (dateObject, numberOfWeeks) {
+	function comboWeeksFill(dateObject, numberOfWeeks) {
 		var currDate = dateObject.getDate();
 		var currMonth = dateObject.getMonth();
 		var currYear = dateObject.getFullYear();
@@ -128,7 +132,7 @@ function constructor (id) {
 		});			
 	}
 	
-	function comboDossierFindFill () {
+	function comboDossierFindFill() {
 		waf.ds.Dossier.getDossierArr({
 			onSuccess: function(event) {
 				$comp.sourcesVar.comboDossierFindArr = event.result.slice(0);
@@ -141,7 +145,7 @@ function constructor (id) {
 		});	
 	}
 	
-	function comboPosteFindFill () {
+	function comboPosteFindFill() {
 		waf.ds.Poste.getPosteArr({
 			onSuccess: function(event) {
 				$comp.sourcesVar.comboPosteFindArr = event.result.slice(0);
@@ -154,7 +158,7 @@ function constructor (id) {
 		});	
 	}
 
-	function timeStr2float (timeStr) {
+	function timeStr2float(timeStr) {
 		var timeFloat = 0;
 		var integerPart = 0;
 		var decimalPart = 0;
@@ -181,7 +185,7 @@ function constructor (id) {
 		return timeFloat;
 	}
 	
-	function timeFloat2Str (timeFloat) {		
+	function timeFloat2Str(timeFloat) {		
 		var timeStr = "";
 		var integerPart = Math.floor(timeFloat);
 		var decimalPart = ((timeFloat % 1).toFixed(2)) * 1;
@@ -195,11 +199,13 @@ function constructor (id) {
 		return timeStr;
 	};
 
-	function refreshTotalHeures () {
+	function refreshTotalHeures() {
+		$comp.sources.detail_Temps.serverRefresh();
+		
 		$comp.sources.detail_Temps.getTotalTime ({
 			onSuccess: function(event){
 				var resultTotal = event.result;
-				$comp.sourcesVar.totalHeures = timeFloat2Str (resultTotal);
+				$comp.sourcesVar.totalHeures = timeFloat2Str(resultTotal);
 				$comp.sources.totalHeures.sync();
 				return resultTotal;
 			},
@@ -210,7 +216,7 @@ function constructor (id) {
 		});
 	};
 	
-	function DTselectByDate (firstDate, lastDate) {
+	function DTselectByDate(firstDate, lastDate) {
 		if ((firstDate !== undefined) && (lastDate !== undefined)) {
 			$comp.sources.detail_Temps.query("DET_Date >= :1 AND DET_Date <= :2 order by DET_Date, DPI_ID", firstDate, lastDate);
 		} else if (firstDate !== undefined) {
@@ -220,7 +226,7 @@ function constructor (id) {
 		refreshTotalHeures();
 	};
 
-	function comboDayFill () {
+	function comboDayFill() {
 		$comp.sourcesVar.comboDayArr = [];
 		$comp.sourcesVar.comboDayArr.push({dayName: 'Tous', dayNum: 0});
 		$comp.sourcesVar.comboDayArr.push({dayName: 'Lundi', dayNum: 1});
@@ -235,30 +241,16 @@ function constructor (id) {
 		$comp.sources.comboDayArr.select(0); //tous les jours de la semaine		
 	};
 	
-	function comboDPIinit (dpiId) {
+	function comboDPIinit(dpiId) {
 		//pour chargement comboBoxDPI
 		$comp.sources.dosPosInt_A.all();
 	};
 
-	function comboDPIload (dpiId) {
-		if ($comp.sources.detail_Temps.isNewElement()) {
-			comboboxDPI$.find('input').val('');	
-		} else {
-			$comp.sources.dosPosInt_A1.query("DPI_ID = :1", dpiId, {
-				onSuccess: function(event) {
-					var inputValue = "";
-					if ($comp.sources.dosPosInt_A1.length == 0) {
-						inputValue = "périmé";
-					} else {
-						inputValue = $comp.sources.dosPosInt_A1.SocDosPos_Lib;
-					}
-					//super Hack to simul selected comboBoxDPI value
-					comboboxDPI$.find('input').val(inputValue);	
-				}
-			});
-		}
+	function comboDPIload(comboValue) {
+		//Hack to simul selected comboBoxDPI value
+		comboboxDPI$.find('input').val(comboValue);
 	};
-	
+		
 	function resetPrevNextButtons() {
 		if ($comp.sources.detail_Temps.isNewElement()) {
 			//mask next/previous button if new entity
@@ -281,7 +273,7 @@ function constructor (id) {
 		}
 	}
 	
-	function DTinit () {
+	function DTinit() {
 		//$comp.sources.dtDate_var = new Date(); //Date courante
 		//$comp.sourcesVar.dtDate_var = new Date(2012, 6, 1); //pour tests
 		//$comp.sources.dtDate_var.sync();	//mise à jour interface
@@ -293,37 +285,37 @@ function constructor (id) {
 
 		var currentDate = new Date(2012, 6, 1); //pour tests	
 		var numberOfWeeks = 21;
-		comboWeeksFill (currentDate, numberOfWeeks);
+		comboWeeksFill(currentDate, numberOfWeeks);
 
 		//chargement combobox jours de la semaine (liste)
-		comboDayFill ();
+		comboDayFill();
 
 		//chargement combobox Dossier/Poste (détail)
-		comboDPIinit ();
+		comboDPIinit();
 	
 		//chargement combobox semaine (recherche)
-		comboWeeksFindFill (currentDate, numberOfWeeks);
+		comboWeeksFindFill(currentDate, numberOfWeeks);
 		//chargement combobox dossier (recherche)
-		comboDossierFindFill ();
+		comboDossierFindFill();
 		//chargement combobox poste (recherche)
-		comboPosteFindFill ();
+		comboPosteFindFill();
 
 		 
 		//sélection des détail temps de la semaine sélectionnée et/ou du jour de la semaine sélectionné
-		DTlistLoad ();			
+		DTlistLoad();			
 	};
 	
-	function DTlistLoad () {
+	function DTlistLoad() {
 
 		var selDayNum = $comp.sources.comboDayArr.getKey();
 		if (selDayNum == 0) {  //tous les jours de la semaine
 			//sélection détail temps de la semaine sélectionnée
-			DTselectByDate ($comp.sources.comboWeeksArr.dateDebut, $comp.sources.comboWeeksArr.dateFin);	
+			DTselectByDate($comp.sources.comboWeeksArr.dateDebut, $comp.sources.comboWeeksArr.dateFin);	
 		} else if ((selDayNum >= 1) && (selDayNum <=7)) {
 			selDayNum--;
 			//sélection détail temps du jour sélectionné de la semaine sélectionnée
-			DTselectByDate (addDays (new Date($comp.sources.comboWeeksArr.dateDebut), selDayNum));	
-//			DTselectByDate (addDays (dateObject, selDayNum));	
+			DTselectByDate(addDays(new Date($comp.sources.comboWeeksArr.dateDebut), selDayNum));	
+//			DTselectByDate(addDays(dateObject, selDayNum));	
 		};
 
 //		$$(buttonDupliDomId).disable();
@@ -334,7 +326,7 @@ function constructor (id) {
 		$$(dialogFindDomId).hide();
 	};
 
-	function DTlistDupliSelected () {
+	function DTlistDupliSelected() {
 //		debugger;
 
 		var DT = $comp.sources.detail_Temps;
@@ -363,7 +355,7 @@ function constructor (id) {
 		}		
 	};
 		
-	function DTlistDeleteSelected () {
+	function DTlistDeleteSelected() {
 		//debugger;
 
 		var DT = $comp.sources.detail_Temps;
@@ -390,7 +382,7 @@ function constructor (id) {
 		}		
 	};
 	
-	function DTlistFindDialog () {
+	function DTlistFindDialog() {
 		$$(dialogFindDomId).show();
 
 		//debugger;
@@ -419,7 +411,7 @@ function constructor (id) {
 		$$(findDateDebutVar).focus();
 	};
 	
-	function DTlistFindQuery () {
+	function DTlistFindQuery() {
 		//debugger;
 		
 		var dateDebutWeek = $comp.sources.comboWeeksFindArr.dateDebut;
@@ -479,163 +471,107 @@ function constructor (id) {
 		$$(dialogFindDomId).hide();
 		
 		if (dtFilter.length > 0) {
-			$comp.sources.detail_Temps.query(dtFilter + " order by DET_Date, DPI_ID", {onSuccess: function(event){}});
+//			$comp.sources.detail_Temps.query(dtFilter + " order by DET_Date, DPI_ID", {onSuccess: function(event){}}); //asyncchrone
+			$comp.sources.detail_Temps.query(dtFilter + " order by DET_Date, DPI_ID"); //synchrone
 
 			$comp.sources.comboWeeksArr.select(0);
 			comboboxWeek$.find('input').val('Aucune');	
+
 			refreshTotalHeures();
 		}	
 	
 	};
 	
-	function DTlistPrint_ () {
-		debugger;
-		var start = 0;
-	 	$comp.sources.detail_Temps.getElements(start, {
-	        onSuccess: function(event) {
-				alert('DTlistPrint getElements onSuccess');
-	   	  		var currentDayOfWeek = -1;
-	    		var previousDayOfWeek = -1;
-				var dayArr = [Dimanche, Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi];
-				var cumulDayTime = 0;
-				var cumulTotalTime = 0;
-				var html = '';
-				alert('DTlistPrint getElements onSuccess2');
-				
-		        debugger;
-		        html += '<div class="t1">';
-		        html += '<div class="t2">';
-				//ligne d'entete avec titre des colonnes
-	            html += '<div class="r1">'; // for each array element
-				html += '<span class="s1"><b>Jour</b></span>';  //nouvelle colonne
-				html += '<span class="s1"><b>Client</b></span>';  //nouvelle colonne
-				html += '<span class="s1"><b>Dossier</b></span>';  //nouvelle colonne
-				html += '<span class="s1"><b>N°</b></span>';  //nouvelle colonne
-				html += '<span class="s1"><b>Temps</b></span>';  //nouvelle colonne
-				html += '<span class="s1"><b>Poste</b></span>';  //nouvelle colonne
-				html += '<span class="s1"><b>Observations</b></span>';  //nouvelle colonne
-                html += '</div>';
-				
-	            var elems = event.result; //resulting array
-				alert('DTlistPrint getElements onSuccess');
-		  		var currentDayOfWeek = dt.DET_Date.getDay();
-	            elems.forEach(function(dt) {
-	            	
-		            currentDayOfWeek = dt.DET_Date.getDay();
-					
-					cumulDayTime += dt.DET_Temps;
-					 
-	                html += '<div class="r1">'; // for each array element
-	                html += '<span class="s1">' + dayArr[currentDayOfWeek] + '&nbsp'+ formatDateOnly(dt.DET_Date) + '</span>'; // Jour
-	                html += '<span class="s1">' + dt.Lien_DPI_DT.Lien_DOSPOS_DPI.Lien_DOS_DOSPOS.Lien_SOC_DOSPOS.SOC_RS_Courte + '</span>'; //Client
-	                html += '<span class="s1">' + dt.Lien_DPI_DT.Lien_DOSPOS_DPI.Lien_DOS_DOSPOS.DOS_Libelle + '</span>'; //Dossier
-	                html += '<span class="s1">' + dt.Lien_DPI_DT.Lien_DOSPOS_DPI.Lien_DOS_DOSPOS.DOS_Numero + '</span>'; //N°
-	                html += '<span class="s1">' + dt.DET_heures + '</span>'; //Temps
-	                html += '<span class="s1">' + dt.Lien_DPI_DT.Lien_DOSPOS_DPI.Lien_POS_DOSPOS.POS_Code + '</span>'; //Poste
-	                html += '<span class="s1">' + dt.DET_Commentaire + '</span>'; //Observation
-	                html += '</div>';
-
-					if (currentDayOfWeek = -1) { //premier tour de boucle
-	  					var currentDayOfWeek = dt.DET_Date.getDay();
-			    		var previousDayOfWeek = currentDayOfWeek;	
-					} else if (currentDayOfWeek !== previousDayOfWeek) { //changement de jour
-		                html += '<div class="r1">'; // ligne cumul jour
-			            html += '<span class="s1">Cumul journalier</span>'; //Temps
-			            html += '<span class="s1">' + timeFloat2Str(cumulDayTime) + '</span>'; //Temps
-		                html += '</div>';
-
-		                html += '<div class="r1">'; // ligne cumul jour
-						html += '<span class="s1"><hr noshade align="center"</span>'; // ligne séparation jour
-		                html += '</div>';
-
-		            	previousDayOfWeek = currentDayOfWeek;
-			  			currentDayOfWeek = dt.DET_Date.getDay();
-			  			cumulTotalTime += cumulDayTime;
-						cumulDayTime = 0;
-						
-		            } else {
-		            	
-		        	}
-		        	
-	            });
-
-                html += '<div class="r1">'; // ligne cumul jour
-	            html += '<span class="s1">Cumul journalier</span>'; //Temps
-	            html += '<span class="s1">' + timeFloat2Str(cumulDayTime) + '</span>'; //Temps
-                html += '</div>';
-
-                html += '<div class="r1">'; // ligne cumul jour
-				html += '<span class="s1"><hr noshade align="center"</span>'; // ligne séparation jour
-                html += '</div>';
-
-	  			cumulTotalTime += cumulDayTime;
-
-                html += '<div class="r1">'; // ligne cumul total
-	            html += '<span class="s1">Total heures : ' + timeFloat2Str(cumulTotalTime) + '</span>'; //Temps
-                html += '</div>';
-
-	            html +='</div>';
-	            html +='</div>';
-				$$(containerPrintTestDomId).show();
-	            $("#containerPrintTestDomId").html(html);
-	        },
-			onError: function(event){
-				alert('DTlistPrint getElements onError: ' + event);
-				WAF.ErrorManager.displayError(event);
-				return 0;
-			}
-	    });		
+	function DTlistPrint() {
+		//debugger;
+		var mode = 'previsu'; //'previsu'/'print';
+		
+		if (mode === 'print') { 
+			//memo current detail_Temps collection
+			var dtSet = $comp.sources.detail_Temps.getSelection(); //getEntityCollection();
+			$comp.sources.intervenant.setSessionInfo('dtCollection', $comp.sources.detail_Temps.getSelection());		
+			var printWindow = window.open( '/GA_print.waPage/index.html', '_self' );
+		} else if (mode === 'previsu') {
+			var printHtml = '';		
+			printHtml = $comp.sources.detail_Temps.print();
+			$$(DTlistContainer).hide();
+			$$(DTprintContainerDomId).show();
+	        $('#' + DTprintContainerDomId).html(printHtml);
+	    }
 	};
 
-	function DTlistPrint () {
-//		debugger;
-		
-		//memo current detail_Temps collection
-//		var dtSet = $comp.sources.detail_Temps.getEntityCollection();
-//		$comp.sources.intervenant.setSessionInfo('dtCollection', dtSet);
-		
-//		var printWindow = window.open( '/GA_print.waPage/index.html', '_self' );
-		
-		var printHtml = '';		
-		printHtml = $comp.sources.detail_Temps.print ();
-		$$(DTlistContainer).hide();
-		$$(DTprintContainerDomId).show();
-        $('#' + DTprintContainerDomId).html(printHtml);
+	function DTdetailModif(modeModif) {
+		if (modeModif == true) {
+			$$(DET_DateInputRef).show();
+			$$(DET_DateTextRef).hide(); 
+			$$(comboboxDPIref).show();
+			$$(dtDossierLibTextRef).hide();			
+			$$(DET_HeuresInputRef).show();
+			$$(DET_HeuresTextRef).hide();
+		} else {
+			$$(DET_DateInputRef).hide();
+			$$(DET_DateTextRef).show(); 
+			$$(comboboxDPIref).hide();
+			$$(dtDossierLibTextRef).show();
+			$$(DET_HeuresInputRef).hide();
+			$$(DET_HeuresTextRef).show();			
+		}		
 	};
 	
-	function DTdetailLoad () {
-		if ($comp.sources.detail_Temps.isNewElement()) {
+	function DTdetailLoad() {
+		var selDayNum = 0,
+		    dtDate = new Date(),
+		    dt = $comp.sources.detail_Temps,
+		    isNew = dt.isNewElement(),
+			socDosPosLib = dt.SocDosPos_Lib,
+			socDosPosValid = dt.SocDosPos_Valid;
+
+		if (isNew) {
 			//new detail_Temps entity
 			//date par defaut
-			var selDayNum = $comp.sources.comboDayArr.getKey();
+			selDayNum = $comp.sources.comboDayArr.getKey();
 			if (selDayNum == 0) {  //tous les jours de la semaine
 				//sélection détail temps de la semaine sélectionnée
-				var dtDate = new Date($comp.sources.comboWeeksArr.dateDebut);	
+				dtDate = new Date($comp.sources.comboWeeksArr.dateDebut);	
 			} else if ((selDayNum >= 1) && (selDayNum <=7)) {
 				selDayNum--;
 				//sélection détail temps du jour sélectionné de la semaine sélectionnée
-				var dtDate = new Date(addDays (new Date($comp.sources.comboWeeksArr.dateDebut), selDayNum));	
+				dtDate = new Date(addDays(new Date($comp.sources.comboWeeksArr.dateDebut), selDayNum));	
 			};	
 
-			$comp.sources.detail_Temps.DET_Date = dtDate;			
-		};
+			dt.DET_Date = dtDate;			
+		}
 		
 		//update var date
-		$comp.sourcesVar.dtDateInputVar = new Date($comp.sources.detail_Temps.DET_Date);	
+		$comp.sourcesVar.dtDateInputVar = new Date(dt.DET_Date);	
 		$comp.sources.dtDateInputVar.sync();	//mise à jour interface
-		$$(textFieldDateInputRef).focus();
+		$$(DET_DateInputRef).focus();
 
 		//positionnement combobox DPI
-		comboDPIload($comp.sources.detail_Temps.DPI_ID);
-		
+		if (isNew) {
+			comboDPIload('');
+		} else if (socDosPosValid == 1) {
+			comboDPIload(socDosPosLib);
+		} else {
+			comboDPIload('perimé');			
+		}
+						
 		//mise à jour variable saisie Temps
-		$comp.sourcesVar.dtTempsInputVar = timeFloat2Str ($comp.sources.detail_Temps.DET_Temps);
+		$comp.sourcesVar.dtTempsInputVar = timeFloat2Str(dt.DET_Temps);
 		$comp.sources.dtTempsInputVar.sync();
-		
+			
+		//contrôle l'accès en visualisation si dossier périmé
+		if ((socDosPosValid == 1) || (isNew)) {
+			DTdetailModif(true);
+		} else {
+			DTdetailModif(false);			
+		};
+
 		resetPrevNextButtons();
+		
 	};
 
-	function DTdetailValide () {
+	function DTdetailValide() {
 		var response = {};
 		var	dt = $comp.sources.detail_Temps;
 		
@@ -662,7 +598,7 @@ function constructor (id) {
 
 	};
 		
-	function DTdetailSave () {
+	function DTdetailSave() {
 		
 		//debugger;
 		
@@ -686,7 +622,7 @@ function constructor (id) {
 //							dt.addEntity(dt.getCurrentElement()); 
 //							var myColl = dt.getEntityCollection();
 //							
-//							DTlistLoad ();
+//							DTlistLoad();
 //							
 ////							myColl.refresh({ //access to the collection values on the server
 ////							    onSuccess: function(event){ 
@@ -695,7 +631,7 @@ function constructor (id) {
 //							
 //							
 //						} else {
-//							//DTlistLoad ();
+//							//DTlistLoad();
 //						}
 //		        	},
 //		        	onError : function(err) {
@@ -717,26 +653,21 @@ function constructor (id) {
 		return dtValid.valid;
 	};
 	
-	function toogleListDetail (param) {
+	function toogleListDetail(param) {
 		if (param == 'list') {
-			
-//			//sélection des détail temps de la semaine sélectionnée et/ou du jour de la semaine sélectionné
-//			DTlistLoad ();			
-
 			$$(DTdetailContainer).hide();
 			$$(DTlistContainer).show();
 		} else {			
-
 			$$(DTlistContainer).hide();
 			$$(DTdetailContainer).show();		
-			DTdetailLoad ();
 
+			DTdetailLoad();
 		};		
 	};
 
 
 	//initialisations
-	DTinit ();
+	DTinit();
 
 	$$(DTlistContainer).show();
 	toogleListDetail('list');
@@ -751,24 +682,24 @@ function constructor (id) {
 
 	buttonPrint.click = function buttonPrint_click (event)// @startlock
 	{// @endlock
-		DTlistPrint ();
+		DTlistPrint();
 	};// @lock
 
 	comboWeeksArrEvent.onIDAttributeChange = function comboWeeksArrEvent_onIDAttributeChange (event)// @startlock
 	{// @endlock
 		//sélection détail temps de la semaine sélectionnée
-		DTselectByDate ($comp.sources.comboWeeksArr.dateDebut, $comp.sources.comboWeeksArr.dateFin);
+		DTselectByDate($comp.sources.comboWeeksArr.dateDebut, $comp.sources.comboWeeksArr.dateFin);
 		$comp.sources.comboDayArr.select(0); //tous les jours de la semaine		
 	};// @lock
 
 	buttonFind.click = function buttonFind_click (event)// @startlock
 	{// @endlock
-		DTlistFindDialog ();
+		DTlistFindDialog();
 	};// @lock
 
 	buttonFindOk.click = function buttonFindOk_click (event)// @startlock
 	{// @endlock
-		DTlistFindQuery ();
+		DTlistFindQuery();
 	};// @lock
 
 	buttonFindCancel.click = function buttonFindCancel_click (event)// @startlock
@@ -795,11 +726,11 @@ function constructor (id) {
 		$$(dialogDupliDomId).hide();
 	};// @lock
 
-	textFieldInputTemps.blur = function textFieldInputTemps_blur (event)// @startlock
+	DET_HeuresInput.blur = function DET_HeuresInput_blur (event)// @startlock
 	{// @endlock
 		//debugger;
 		var timeStr = $comp.sourcesVar.dtTempsInputVar;
-		var timeFloat = timeStr2float (timeStr);
+		var timeFloat = timeStr2float(timeStr);
 		var timeStrVerif = timeFloat2Str(timeFloat);
 		if (timeStr !== timeStrVerif) {
 			$comp.sourcesVar.dtTempsInputVar = timeStrVerif;
@@ -829,7 +760,7 @@ function constructor (id) {
 
 	buttonDupli.click = function buttonDupli_click (event)// @startlock
 	{// @endlock
-		DTlistDupliSelected ();
+		DTlistDupliSelected();
 	};// @lock
 
 	comboboxDPI.change = function comboboxDPI_change (event)// @startlock
@@ -847,12 +778,12 @@ function constructor (id) {
 		var selDayNum = $comp.sources.comboDayArr.getKey();
 		if (selDayNum == 0) {  //tous les jours de la semaine
 			//sélection détail temps de la semaine sélectionnée
-			DTselectByDate ($comp.sources.comboWeeksArr.dateDebut, $comp.sources.comboWeeksArr.dateFin);	
+			DTselectByDate($comp.sources.comboWeeksArr.dateDebut, $comp.sources.comboWeeksArr.dateFin);	
 		} else if ((selDayNum >= 1) && (selDayNum <=7)) {
 			selDayNum--; //0-6
 			//sélection détail temps du jour sélectionné de la semaine sélectionnée
-			DTselectByDate (addDays (new Date($comp.sources.comboWeeksArr.dateDebut), selDayNum));	
-//			DTselectByDate (addDays (dateObject, selDayNum));	
+			DTselectByDate(addDays(new Date($comp.sources.comboWeeksArr.dateDebut), selDayNum));	
+//			DTselectByDate(addDays(dateObject, selDayNum));	
 		};
 
 	};// @lock
@@ -864,16 +795,15 @@ function constructor (id) {
 
 	buttonDelete.click = function buttonDelete_click (event)// @startlock
 	{// @endlock
-		DTlistDeleteSelected ();
+		DTlistDeleteSelected();
 	};// @lock
 
 	buttonNext.click = function buttonNext_click (event)// @startlock
 	{// @endlock
-		if (DTdetailSave ()) {
+		if (DTdetailSave()) {
 			$comp.sources.detail_Temps.selectNext({
-			    onSuccess:function(event) // asynchronous call (recommended)
-		        {
-					DTdetailLoad ();
+			    onSuccess:function(event) { // asynchronous call (recommended)
+					DTdetailLoad();
 		        }
 			});
 		}
@@ -881,11 +811,10 @@ function constructor (id) {
 
 	buttonPrev.click = function buttonPrev_click (event)// @startlock
 	{// @endlock
-		if (DTdetailSave ()) {
+		if (DTdetailSave()) {
 			$comp.sources.detail_Temps.selectPrevious({
-			    onSuccess:function(event) // asynchronous call (recommended)
-		        {
-					DTdetailLoad ();
+			    onSuccess:function(event) { // asynchronous call (recommended)
+					DTdetailLoad();
 		        }
 			});
 		}
@@ -893,7 +822,7 @@ function constructor (id) {
 
 	buttonSave.click = function buttonSave_click (event)// @startlock
 	{// @endlock
-		if (DTdetailSave ()) {
+		if (DTdetailSave()) {
 			toogleListDetail('list');
 		}
 	};// @lock
@@ -919,7 +848,7 @@ function constructor (id) {
 		$comp.sources.comboDayArr.select(0); //tous les jours de la semaine		
 
 		//sélection détail temps de la semaine sélectionnée
-		DTselectByDate ($comp.sources.comboWeeksArr.dateDebut, $comp.sources.comboWeeksArr.dateFin);	
+		DTselectByDate($comp.sources.comboWeeksArr.dateDebut, $comp.sources.comboWeeksArr.dateFin);	
 	};// @lock
 
 	detail_TempsEvent.onCollectionChange = function detail_TempsEvent_onCollectionChange (event)// @startlock
@@ -936,7 +865,7 @@ function constructor (id) {
 	WAF.addListener(this.id + "_buttonFindCancel", "click", buttonFindCancel.click, "WAF");
 	WAF.addListener(this.id + "_buttonDupliCancel", "click", buttonDupliCancel.click, "WAF");
 	WAF.addListener(this.id + "_buttonDupliOK", "click", buttonDupliOK.click, "WAF");
-	WAF.addListener(this.id + "_textFieldInputTemps", "blur", textFieldInputTemps.blur, "WAF");
+	WAF.addListener(this.id + "_DET_HeuresInput", "blur", DET_HeuresInput.blur, "WAF");
 	WAF.addListener(this.id + "_buttonAdd", "click", buttonAdd.click, "WAF");
 	WAF.addListener(this.id + "_buttonDupli", "click", buttonDupli.click, "WAF");
 	WAF.addListener(this.id + "_comboboxDPI", "change", comboboxDPI.change, "WAF");

@@ -13,14 +13,15 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 		//TODO : récupérer la sélection courante
 		//var DTprintContainerDomId = document.getElementById('DTprintContainer');
 		debugger;
-//		var dtCollection = sources.intervenant.getSessionInfo('dtCollection');
-//		var	printHtml = dtCollection.print (); 
-		
+		var dtCollection = sources.intervenant.getSessionInfo('dtCollection');
 		var printHtml = '';
+
+		sources.detail_Temps.setSelection(dtCollection);
+		printHtml = sources.detail_Temps.print (); 
+		
 //		var dtSet = sources.detail_Temps.query("DET_Date >= 2012-10-01 AND DET_Date <= 2012-10-07 order by DET_Date, DPI_ID");
-//		printHtml = dtSet.print ();
-				
-		printHtml = sources.detail_Temps.print ();
+//		printHtml = dtSet.print ();		
+//		printHtml = sources.detail_Temps.print ();
 
 //		sources.detail_Temps.query("DET_Date >= 2012-10-01 AND DET_Date <= 2012-10-07 order by DET_Date, DPI_ID",{
 //			onSuccess: function(event)

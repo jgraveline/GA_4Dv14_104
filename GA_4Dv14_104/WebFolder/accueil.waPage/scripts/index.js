@@ -48,6 +48,19 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 
 	login.logout = function login_logout (event)// @startlock
 	{// @endlock
+		ds.Detail_Temps.clearCache();
+		ds.DosPosInt_A.clearCache();
+		ds.DosPos_A.clearCache();
+		ds.Semaine.clearCache();
+		ds.Dossier.clearCache();
+		ds.Poste.clearCache();
+		ds.Societe.clearCache();
+//		ds.Type_Societe.clearCache();
+//		ds.Statut_Societe.clearCache();
+		ds.Intervenant.clearCache();
+//		ds.Type_Intervenant.clearCache();
+//		ds.Statut_Intervenant.clearCache();
+
 		$$("mainComponent").removeComponent(componentChoice ());
 //		$$("componentMain").loadComponent(componentPath);
 		$$("splashImage").show(200);

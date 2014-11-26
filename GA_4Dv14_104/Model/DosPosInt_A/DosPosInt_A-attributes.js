@@ -1,0 +1,1 @@
+﻿model.DosPosInt_A.SocDosPos_Lib = new Attribute("calculated", "string");model.DosPosInt_A.SocDosPos_Lib.scope = "public";model.DosPosInt_A.SocDosPos_Valid = new Attribute("calculated", "string");model.DosPosInt_A.SocDosPos_Valid.scope = "public";//model.DosPosInt_A.SocDosPos_Lib.autoComplete = true;
